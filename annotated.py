@@ -228,10 +228,10 @@ def main():
     
     # Save the color statistics to a file
     with open(os.path.join(output_dir, "color_statistics.txt"), "w") as f:
-        f.write(f"RGB Mean: {rgb_mean}\n")
-        f.write(f"RGB Std: {rgb_std}\n")
-        f.write(f"CieLAB Mean: {lab_mean}\n")
-        f.write(f"CieLAB Std: {lab_std}\n")
+        f.write(f"RGB Mean: [{rgb_mean[0]:.2f}, {rgb_mean[1]:.2f}, {rgb_mean[2]:.2f}]\n")
+        f.write(f"RGB Std: [{rgb_std[0]:.2f}, {rgb_std[1]:.2f}, {rgb_std[2]:.2f}]\n")
+        f.write(f"CieLAB Mean: [{lab_mean[0]:.2f}, {lab_mean[1]:.2f}, {lab_mean[2]:.2f}]\n")
+        f.write(f"CieLAB Std: [{lab_std[0]:.2f}, {lab_std[1]:.2f}, {lab_std[2]:.2f}]\n")
     
     print(f"Processing complete. Results saved to {output_dir}.")
 
