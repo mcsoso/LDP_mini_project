@@ -4,25 +4,24 @@ import matplotlib.pyplot as plt
 from skimage import color
 import os
 
-def extract_annotation_mask(annotated_image, annotation_color=[0, 0, 255]):
+def extract_annotation_mask(annotated_image, annotation_color):
     """
-    Extract a mask of pixels that are annotated with the specified color (default is red).
+    Extract a mask of pixels that are annotated with the specified color.
     
     Args:
         annotated_image: The input BGR image with annotations
-        annotation_color: The BGR color used for annotation (default is red in BGR: [0, 0, 255])
+        annotation_color: The BGR color used for annotation)
         
     Returns:
         Mask of annotated pixels
     """
     # Convert annotation color to BGR (OpenCV format)
     annotation_color_bgr = np.array(annotation_color)
-    # for maciecks picture
-    annotation_color_bgr = np.array([43, 21, 229])
     
     # Create a mask for annotated pixels
-    lower_bound = annotation_color_bgr - np.array([15, 15, 15])
-    upper_bound = annotation_color_bgr + np.array([15, 15, 15])
+    range = 15
+    lower_bound = annotation_color_bgr - np.array([range, range, range])
+    upper_bound = annotation_color_bgr + np.array([range, range, range])
     
     mask = cv2.inRange(annotated_image, lower_bound, upper_bound)
     return mask
@@ -68,7 +67,7 @@ def compute_color_statistics(pixels, color_space="RGB"):
         std = np.std(pixels, axis=0)
         return pixels, mean, std
 
-def visualize_color_distribution(pixels, color_space="RGB", output_dir="."):
+def visualize_color_distribution(pixels, output_dir, color_space="RGB"):
     """
     Visualize the distribution of color values in the specified color space.
     
@@ -110,8 +109,8 @@ def segment_pumpkins(image, rgb_mean, rgb_std, lab_mean, lab_std):
     
     # Create color-based masks
     # RGB mask
-    lower_rgb = np.maximum(rgb_mean - 2.5 * rgb_std, 0)
-    upper_rgb = np.minimum(rgb_mean + 2.5 * rgb_std, 255)
+    lower_rgb = np.maximum(rgb_mean - 4 * rgb_std, 0)
+    upper_rgb = np.minimum(rgb_mean + 4 * rgb_std, 255)
     
     rgb_mask = cv2.inRange(rgb_image, lower_rgb.astype(np.uint8), upper_rgb.astype(np.uint8))
     
@@ -126,7 +125,7 @@ def segment_pumpkins(image, rgb_mean, rgb_std, lab_mean, lab_std):
     mahalanobis_dist = np.sqrt(np.sum((lab_diff @ np.linalg.inv(lab_cov)) * lab_diff, axis=1))
     mahalanobis_dist = mahalanobis_dist.reshape(h, w)
     
-    lab_mask = (mahalanobis_dist < 3.0).astype(np.uint8) * 255
+    lab_mask = (mahalanobis_dist < 5.0).astype(np.uint8) * 255
     
     # Combine masks
     combined_mask = cv2.bitwise_and(rgb_mask, lab_mask)
@@ -143,6 +142,7 @@ def main():
     annotated_image_path = "annotated/EB-02-660_0595_0341marked.JPG"
     original_image_path = "annotated/EB-02-660_0595_0341.JPG"
     output_dir = "./pumpkin_results"
+    annotation_color = [43, 21, 229] # BGR Format
     
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
@@ -160,7 +160,7 @@ def main():
         return
     
     # Extract the annotation mask
-    annotation_mask = extract_annotation_mask(annotated_image)
+    annotation_mask = extract_annotation_mask(annotated_image, annotation_color)
     
     if cv2.countNonZero(annotation_mask) == 0:
         print("No red annotations found in the annotated image. Please check the annotation color.")
@@ -188,8 +188,8 @@ def main():
     print(f"CieLAB Std: {lab_std}")
     
     # Visualize color distributions
-    visualize_color_distribution(rgb_pixels, "RGB", output_dir)
-    visualize_color_distribution(lab_pixels, "CieLAB", output_dir)
+    visualize_color_distribution(rgb_pixels, output_dir, "RGB")
+    visualize_color_distribution(lab_pixels, output_dir, "CieLAB")
     
     # Segment the original image using the color statistics
     segmentation_mask = segment_pumpkins(original_image, rgb_mean, rgb_std, lab_mean, lab_std)
@@ -228,10 +228,10 @@ def main():
     
     # Save the color statistics to a file
     with open(os.path.join(output_dir, "color_statistics.txt"), "w") as f:
-        f.write(f"RGB Mean: [{rgb_mean[0]:.2f}, {rgb_mean[1]:.2f}, {rgb_mean[2]:.2f}]\n")
-        f.write(f"RGB Std: [{rgb_std[0]:.2f}, {rgb_std[1]:.2f}, {rgb_std[2]:.2f}]\n")
-        f.write(f"CieLAB Mean: [{lab_mean[0]:.2f}, {lab_mean[1]:.2f}, {lab_mean[2]:.2f}]\n")
-        f.write(f"CieLAB Std: [{lab_std[0]:.2f}, {lab_std[1]:.2f}, {lab_std[2]:.2f}]\n")
+        f.write(f"RGB Mean: [{rgb_mean[0]}, {rgb_mean[1]}, {rgb_mean[2]}]\n")
+        f.write(f"RGB Std: [{rgb_std[0]}, {rgb_std[1]}, {rgb_std[2]}]\n")
+        f.write(f"CieLAB Mean: [{lab_mean[0]}, {lab_mean[1]}, {lab_mean[2]}]\n")
+        f.write(f"CieLAB Std: [{lab_std[0]}, {lab_std[1]}, {lab_std[2]}]\n")
     
     print(f"Processing complete. Results saved to {output_dir}.")
 

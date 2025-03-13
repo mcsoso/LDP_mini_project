@@ -170,11 +170,7 @@ def main():
             cy = int(centroids[i][1])
             
             # Draw circle at centroid
-            cv2.circle(labeled_image, (cx, cy), 5, (0, 255, 0), -1)
-            
-            # Add label with pumpkin number
-            cv2.putText(labeled_image, f"{i}", (cx - 10, cy - 10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+            cv2.circle(labeled_image, (cx, cy), 8, (0, 255, 0), 2)
     
     # Save labeled image
     cv2.imwrite(os.path.join(output_dir, f"{base_name}_labeled.png"),
